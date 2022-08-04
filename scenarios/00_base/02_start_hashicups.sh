@@ -21,7 +21,12 @@ header2 "Starting API"
 ssh -o ${SSH_OPTS} app@api${FQDN_SUFFIX} \
       "bash -c /start_api.sh"
 
-
 header2 "Starting Frontend"
-
+set -x 
+ssh -o ${SSH_OPTS} app@frontend${FQDN_SUFFIX} \
+      "bash -c /start_frontend.sh"
+set +x 
 header2 "Starting Nginx"
+
+ssh -o ${SSH_OPTS} app@nginx${FQDN_SUFFIX} \
+      "bash -c /start_nginx.sh"

@@ -6,7 +6,7 @@ TAG=`date +%Y-%m-%d`
 
 # CONSUL_VERSION=latest
 # ENVOY_VERSION=1.12-latest
-APP_VERSION="v1.0.5" # https://hub.docker.com/r/hashicorpdemoapp/frontend/tags
+APP_VERSION="v1.0.4" # https://hub.docker.com/r/hashicorpdemoapp/frontend/tags
 BASE_VERSION=latest
 
 build:

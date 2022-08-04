@@ -13,8 +13,9 @@ RUN DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_PUBLIC_PUBLIC_API_URL http://api:8081
+# ENV NODE_ENV production
+# ENV NEXT_PUBLIC_PUBLIC_API_URL http://api:8081
+ENV NEXT_PUBLIC_PUBLIC_API_URL /
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
