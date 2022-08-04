@@ -6,6 +6,67 @@ Modular lab to spin-up a Consul datacenter using custom [Docker][docker] images.
   <p><strong>Warning:</strong> The environment is not intended for production use. It is intended to mimic the behavior of a VM with a container and build test environments to test Consul functionalities without the overhead of deploying a full VM.
 </p></div>
 
+
+## Usage
+
+All the functionalities are built around the `provision.sh` script.
+
+
+### Spin-up scenario
+
+```
+./provision.sh scenario 00
+```
+
+The script will locate the scenario folder based on the parameter.
+
+In the scenario folder will locate a script named `spin_infrastructure.sh` that will contain instructions to deploy the necessary container.
+
+After that it will locate all files starting with two digits, concatenate them, copy them on the `operator` container and run the script.
+
+Final state for scenario 00:
+
+```plaintext
+CONTAINER ID   IMAGE                                   COMMAND                  CREATED             STATUS             PORTS                                                 NAMES
+5126a000b58f   danielehc/hashicups-database:latest     "/usr/bin/tini -- /e…"   About an hour ago   Up About an hour   5432/tcp                                              db
+e8fbd2a54993   danielehc/hashicups-api:latest          "/usr/bin/tini -- /e…"   About an hour ago   Up About an hour   8080/tcp                                              api
+f9f67a6ef340   danielehc/hashicups-frontend:latest     "/usr/bin/tini -- /e…"   About an hour ago   Up About an hour   3000/tcp                                              frontend
+a6299733d5ed   danielehc/hashicups-nginx:latest        "/usr/bin/tini -- /e…"   About an hour ago   Up About an hour   80/tcp                                                nginx
+d8b477d9f64a   danielehc/instruqt-base-consul:latest   "/usr/bin/tini -- /e…"   About an hour ago   Up About an hour                                                         consul
+2b76b4822a27   danielehc/instruqt-base-consul:latest   "/usr/bin/tini -- /e…"   About an hour ago   Up About an hour                                                         operator
+
+```
+
+
+### Test solution (BETA)
+
+```
+./provision.sh solve 00
+```
+
+The script will find a file named `solve_scenario.sh` inside the scenario folder, copy it to the `operator` container and execute it.
+
+
+### Clean scenario
+
+```
+./provision.sh clean
+```
+
+
+### Build images (BETA)
+
+The scenarios are based on custom Docker images. It is possible to rebuild them using:
+
+```
+./provision.sh build
+```
+
+<div style="background-color:#fcf6ea; color:#866d42; border:1px solid #f8ebcf; padding:1em; border-radius:3px; margin:24px 0;">
+  <p><strong>Warning:</strong> The build uses <b>danielehc</b> as Docker repository and is not yet fully tested for the possibility to override that value. If you want to build you own images it is suggested you change the individual Makefiles present in each subfolder of the <b>images</b> folder.
+</p></div>
+
+
 <!--
 Temporary architecture image:
 
@@ -221,10 +282,10 @@ created ones with the following command.
 ```
 docker rmi -f $(docker images -q <your-repo>/*)
 ```
-
+-->
 
 [vault]:https://www.vaultproject.io
 [consul]:https://www.consul.io/
 [envoy]:https://www.envoyproxy.io/
 [docker]:https://www.docker.com/
-[instruqt]:https://play.instruqt.com/ -->
+[instruqt]:https://play.instruqt.com/ 
