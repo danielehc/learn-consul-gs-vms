@@ -30,10 +30,11 @@ RUN chmod +x /bin/product-api && chmod +x /bin/wait.sh
 COPY --from=application3 spring-boot-payments-*.jar /bin/spring-boot-payments.jar
 
 # Install startup script
-COPY start_api.sh /home/app/start_api.sh
-RUN  chmod +x /home/app/start_api.sh
+COPY start_api.sh /start_api.sh
+RUN  chmod +x /start_api.sh
 
 EXPOSE 8080
 
+# The appliucation will be started manually ar runtime
 # Start Payments
-CMD ["/home/app/start_api.sh"]
+# CMD ["/home/app/start_api.sh"]

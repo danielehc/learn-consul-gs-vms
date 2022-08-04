@@ -7,6 +7,10 @@
 
 clean_env() {
 
+  ########## ------------------------------------------------
+  header1     "CLEANING PREVIOUS SCENARIO"
+  ###### -----------------------------------------------
+
   if [[ $(docker ps -aq --filter label=tag=${DK_TAG}) ]]; then
     docker rm -f $(docker ps -aq --filter label=tag=${DK_TAG})
   fi
@@ -57,7 +61,7 @@ spin_container_param() {
   USER="1000:1000"
 
   log "Starting container $1"
-# set -x
+  # set -x
   docker run \
   -d \
   --net ${CONTAINER_NET} \
@@ -72,7 +76,7 @@ spin_container_param() {
     exit 1
   fi 
 
-set +x
+  # set +x
 }
 
 operate_modular() { 
@@ -96,6 +100,10 @@ operate_modular() {
 
 spin_scenario_infra() {
   
+  ########## ------------------------------------------------
+  header1     "DEPLOYING INFRASTRUCTURE"
+  ###### -----------------------------------------------
+
   # set -x
   
   if [ ! -z $1 ]; then
@@ -120,11 +128,11 @@ spin_scenario_infra() {
 
   if [ -f  ${SCENARIO_FOLDER}/spin_infrastructure.sh ]; then
 
-      pushd ${SCENARIO_FOLDER}
+      pushd ${SCENARIO_FOLDER} > /dev/null 2>&1
 
       source ./spin_infrastructure.sh
 
-      popd
+      popd > /dev/null 2>&1
   fi
 
   set +x
@@ -134,7 +142,11 @@ spin_scenario_infra() {
 ## TODO
 operate_scenario() { 
 
-  set -x
+  # set -x
+
+  ########## ------------------------------------------------
+  header1     "OPERATING SCENARIO"
+  ###### -----------------------------------------------
 
   if [ ! -z $1 ]; then
 
@@ -167,7 +179,7 @@ operate_scenario() {
   # docker exec -it operator "chmod +x /home/app/operate.sh"
   docker exec -it operator "/home/app/operate.sh"
 
-  set +x
+  # set +x
 
 }
 
@@ -180,12 +192,27 @@ build() {
   ########## ------------------------------------------------
   header1     "BUILDING DOCKER IMAGES"
   ###### -----------------------------------------------
-  ./images/batch_build.sh $1
+  # ./images/batch_build.sh $1
 
-  if [ $? != 0 ]; then
-    log_err "Build failed. Exiting."
-    exit 1
-  fi
+  declare -a IMAGES=("base" "base-consul" "hashicups-database" "hashicups-api" "hashicups-frontend" "hashicups-nginx")
+
+  for i in "${IMAGES[@]}"
+  do
+    header2 "Bulding image ${DOCKER_REPOSITORY}/$i"
+
+    pushd images/$i > /dev/null 2>&1
+
+    export DOCKER_IMAGE=`echo $i | sed 's/^base/instruqt-base/g'`
+    # echo `pwd`
+    make latest
+  
+    if [ $? != 0 ]; then
+      log_err "Build failed. Exiting."
+      exit 1
+    fi
+
+    popd > /dev/null 2>&1    
+  done
 }
 
 print_available_services() {
@@ -295,39 +322,39 @@ PREREQUISITES="docker,wget,jq,grep,sed,tail,awk"
 if   [ "$1" == "clean" ]; then
   clean_env
   exit 0
-elif [ "$1" == "operate" ]; then
-  operate_modular
-  exit 0
 elif [ "$1" == "scenario" ]; then
   clean_env
   spin_scenario_infra $2
   operate_scenario $2
   exit 0
-elif [ "$1" == "scenario_infra" ]; then
-  clean_env
-  spin_scenario_infra $2
-  # operate_scenario $2
-  exit 0
 elif [ "$1" == "login" ]; then
   login $2
   exit 0
-elif [ "$1" == "services" ]; then
-  print_available_services
-  exit 0
-elif [ "$1" == "configs" ]; then
-  print_available_configs $2
-  exit 0
 elif [ "$1" == "build" ]; then
   export CONSUL_VERSION
-  # export DOCKER_REPOSITORY
+  export DOCKER_REPOSITORY
   build "./images/"
   exit 0
-elif [ "$1" == "build_only" ]; then
-  export CONSUL_VERSION
-  export ONLY_BUILD=true
-  # export DOCKER_REPOSITORY
-  build "./images/"
-  exit 0
+# elif [ "$1" == "operate" ]; then
+#   operate_modular
+#   exit 0
+# elif [ "$1" == "scenario_infra" ]; then
+#   clean_env
+#   spin_scenario_infra $2
+#   # operate_scenario $2
+#   exit 0
+# elif [ "$1" == "services" ]; then
+#   print_available_services
+#   exit 0
+# elif [ "$1" == "configs" ]; then
+#   print_available_configs $2
+#   exit 0
+# elif [ "$1" == "build_only" ]; then
+#   export CONSUL_VERSION
+#   export ONLY_BUILD=true
+#   # export DOCKER_REPOSITORY
+#   build "./images/"
+#   exit 0
 fi
 
 

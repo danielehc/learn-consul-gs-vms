@@ -132,8 +132,8 @@ if [ "${START_FILE_BROWSER}" == true ]; then
   nohup filebrowser > ${LOG_FILEBROWSER} 2>&1 &
 fi
 
-log "Starting Consul on operator"
 
+# log "Starting Consul on operator"
 # Generate Consul config
 
 mkdir -p ${ASSETS}/consul/config

@@ -69,6 +69,8 @@ RUN addgroup --gid 1000 app && \
 	--gecos '' \
 	"app"
 
+RUN printf "\n source /etc/bash.aliases \n" >> /home/app/.bashrc
+
 ## Set users password
 RUN echo app:app | chpasswd
 RUN echo root:toor | chpasswd

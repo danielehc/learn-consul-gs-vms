@@ -13,14 +13,12 @@ RUN DEBIAN_FRONTEND=noninteractive \
 	apt-get --assume-yes install postgresql postgresql-client postgresql-contrib && \
 	rm -rf /var/lib/apt/lists/*
 
-# RUN apk add --no-cache postgresql postgresql-client postgresql-contrib
-
 RUN mkdir /docker-entrypoint-initdb.d
 
 COPY --from=pgres /usr/local/bin/docker-entrypoint.sh /usr/local/bin/
 
 COPY products.sql /docker-entrypoint-initdb.d/
-COPY pg_hba.conf /tmp/
+COPY pg_hba.conf /home/app
 
 RUN mkdir -p /var/run/postgresql && chown -R 1000:1000 /var/run/postgresql && chmod 2777 /var/run/postgresql
 
@@ -33,15 +31,19 @@ ENV POSTGRES_PASSWORD password
 RUN mkdir -p "$PGDATA" && \
     chown -R 1000:1000 "$PGDATA" && \
     chmod 777 "$PGDATA" && \
-    chown -R 1000:1000 /var/lib/postgresql
-# VOLUME /var/lib/postgresql/data
+    chown -R 1000:1000 /var/lib/postgresql && \
+    chown -R 1000:1000 /etc/postgresql
+    
 
-# ENTRYPOINT ["docker-entrypoint.sh"]
+COPY start_database.sh /start_database.sh
+RUN  chmod +x /start_database.sh
 
 STOPSIGNAL SIGINT
 
 EXPOSE 5432
-CMD ["docker-entrypoint.sh", "postgres"]
+
+# The appliucation will be started manually ar runtime
+# CMD ["docker-entrypoint.sh", "postgres"]
 
 
 

@@ -28,6 +28,10 @@ RUN chown -R 1000:1000 /usr/share/nginx/html
 RUN mkdir -p /var/log/nginx && chown -R 1000:1000 /var/log/nginx
 RUN mkdir -p /var/lib/nginx && chown -R 1000:1000 /var/lib/nginx
 
+COPY start_nginx.sh /start_nginx.sh
+RUN  chmod +x /start_nginx.sh
+
 EXPOSE 80
 
+# The appliucation will be started manually ar runtime
 # CMD ["nginx", "-g", "daemon off;"]

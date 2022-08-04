@@ -12,7 +12,7 @@ PRIMARY_DATACENTER="local"
 
 ## Create network
 log "Creating Network ${DK_NET}"
-docker network create ${DK_NET} --subnet=172.20.0.0/24 --label tag=${DK_TAG}
+docker network create ${DK_NET} --subnet=172.20.0.0/24 --label tag=${DK_TAG} > /dev/null 2>&1
 
 
 ## Create Operator node

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export NEXT_PUBLIC_PUBLIC_API_URL=http://api:8081
+
 echo "Checking for NEXT_PUBLIC_PUBLIC_API_URL env var"
 test -n "$NEXT_PUBLIC_PUBLIC_API_URL"
 

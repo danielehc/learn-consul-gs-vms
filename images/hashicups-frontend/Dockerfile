@@ -1,8 +1,8 @@
 ARG BASE_VERSION
 ARG APP_VERSION
 
-# FROM hashicorpdemoapp/frontend:${APP_VERSION} as application
-FROM im2nguyenhashi/hashicups-frontend:latest as application
+FROM hashicorpdemoapp/frontend:${APP_VERSION} as application
+# FROM im2nguyenhashi/hashicups-frontend:latest as application
 FROM danielehc/instruqt-base-consul:${BASE_VERSION} 
 
 RUN apt-get update
@@ -31,8 +31,8 @@ COPY --from=application /app/package.json ./package.json
 RUN chown -R 1000:1000 /app
 
 # COPY --from=application /app/entrypoint.sh ./entrypoint.sh
-COPY start_frontend.sh ./start_frontend.sh
-RUN  chmod +x /app/start_frontend.sh
+COPY start_frontend.sh /start_frontend.sh
+RUN  chmod +x /start_frontend.sh
 
 USER app
 
@@ -40,4 +40,5 @@ EXPOSE 3000
 
 ENV PORT 3000
 
-CMD ["/app/start_frontend.sh"]
+# The appliucation will be started manually ar runtime
+# CMD ["/app/start_frontend.sh"]
