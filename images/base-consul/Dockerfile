@@ -22,6 +22,12 @@ COPY --from=consul-bin /bin/consul /opt/bin/consul
 ## Give binaries the capability to run on privileged ports without using root
 RUN setcap 'cap_net_bind_service=+ep' /opt/bin/consul
 
+RUN mkdir -p /etc/consul
+RUN chown -R 1000:1000 /etc/consul
+
+RUN touch /usr/local/bin/consul && chown -R 1000:1000 /usr/local/bin/consul
+RUN touch /usr/local/bin/envoy && chown -R 1000:1000 /usr/local/bin/envoy
+
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]

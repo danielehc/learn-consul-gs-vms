@@ -130,6 +130,7 @@ spin_scenario_infra() {
 
       pushd ${SCENARIO_FOLDER} > /dev/null 2>&1
 
+      ## BUG this sources again the global vars and resets the Header Counter
       source ./spin_infrastructure.sh
 
       popd > /dev/null 2>&1
@@ -182,6 +183,50 @@ operate_scenario() {
   # set +x
 
 }
+
+solve_scenario() {
+  ########## ------------------------------------------------
+  header1     "SOLVING SCENARIO"
+  ###### -----------------------------------------------
+
+  set -x
+  
+  if [ ! -z $1 ]; then
+
+    # Check if scenario is present
+
+    SCENARIO_FOLDER=`find ./scenarios/$1* -maxdepth 0`
+    
+    if [ ! -d "${SCENARIO_FOLDER}" ]; then
+      echo Scenario not found.
+      echo Available scenarios:
+      find ./scenarios/* -maxdepth 0 | sed 's/.*\//\t/g'
+      exit 1
+    fi
+
+  else
+    echo Pass a scenario as argument.
+    echo Available scenarios:
+    find ./scenarios/* -maxdepth 0 | sed 's/.*\//\t/g'
+    exit 1
+  fi
+
+  if [ -f  ${SCENARIO_FOLDER}/solve_scenario.sh ]; then
+
+    pushd ${SCENARIO_FOLDER} > /dev/null 2>&1
+
+    # Copy script to operator container
+    docker cp solve_scenario.sh operator:/home/app/solve_scenario.sh
+  
+    # Run script
+    # docker exec -it operator "chmod +x /home/app/operate.sh"
+    docker exec -it operator "/home/app/solve_scenario.sh"
+    popd > /dev/null 2>&1
+  fi
+
+  set +x
+}
+
 
 login() {
   docker exec -it $1 /bin/bash
@@ -334,6 +379,9 @@ elif [ "$1" == "build" ]; then
   export CONSUL_VERSION
   export DOCKER_REPOSITORY
   build "./images/"
+  exit 0
+elif [ "$1" == "solve" ]; then
+  solve_scenario $2
   exit 0
 # elif [ "$1" == "operate" ]; then
 #   operate_modular
