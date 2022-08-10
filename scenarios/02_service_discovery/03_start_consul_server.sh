@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# ++-----------------+
+# || Variables       |
+# ++-----------------+
+
 ## Number of servers to spin up (3 or 5 recommended for production environment)
 SERVER_NUMBER=1
 
@@ -9,7 +13,7 @@ DATACENTER="dc1"
 
 SSH_OPTS="StrictHostKeyChecking=accept-new"
 
-echo "Solving scenario 00"
+# echo "Solving scenario 00"
 
 ASSETS="/home/app/assets"
 
@@ -19,67 +23,68 @@ mkdir -p ${ASSETS}
 
 pushd ${ASSETS}
 
-##########################################################
+
+# ++-----------------+
+# || Begin           |
+# ++-----------------+
+
+
+header1 "Starting Consul server"
+
 ##########################################################
 
-echo "Install Consul"
+header2 "Install Consul"
 
-## Install Consul on operator
+log  "Install Consul on operator"
 cp /opt/bin/consul /usr/local/bin/consul && chmod +x /usr/local/bin/consul
 
-## Install Consul on Consul server
+log "Test Consul installation"
+consul version
+
+
+header2 Install Consul on Consul server
 ssh -o ${SSH_OPTS} app@consul${FQDN_SUFFIX} \
       "cp /opt/bin/consul /usr/local/bin/consul && chmod +x /usr/local/bin/consul"
 
-##########################################################
-##########################################################
-
-echo "Test Consul installation"
-
-## Local on operator
-consul version
-
-## Remote on Consul server
+log "Test Consul installation"
 ssh -o ${SSH_OPTS} app@consul${FQDN_SUFFIX} \
       "/usr/local/bin/consul version"
 
 ##########################################################
-##########################################################
+header2 "Create secrets"
 
-echo "Generate gossip encryption key"
-
+log "Generate gossip encryption key"
 echo encrypt = \"$(consul keygen)\" > agent-gossip-encryption.hcl
 
-##########################################################
-##########################################################
-
-echo "Generate CA"
-
+log "Generate CA"
 consul tls ca create -domain=${DOMAIN}
 
-##########################################################
-##########################################################
-
-echo "Generate Server Certificates"
-
+log "Generate Server Certificates"
 consul tls cert create -server -domain ${DOMAIN} -dc=${DATACENTER}
 
-##########################################################
-##########################################################
-
-echo "Create Consul folders"
+log "Create Consul folders"
 
 ssh -o ${SSH_OPTS} app@consul${FQDN_SUFFIX} \
       "mkdir -p /etc/consul/config && mkdir -p /etc/consul/data"
 
-##########################################################
-##########################################################
 
-echo "Generate Configuration"
+##########################################################
+header2 "Configure Consul"
 
+log "Generate agent configuration"
 tee agent-server-secure.hcl > /dev/null << EOF
-# Enable DEBUG logging
+# agent-server-secure.hcl
+
+# Data Persistence
+data_dir = "/etc/consul/data"
+
+# Logging
 log_level = "DEBUG"
+
+# Enable service mesh
+connect {
+  enabled = true
+}
 
 # Addresses and ports
 addresses {
@@ -105,10 +110,10 @@ enable_script_checks = false
 
 ## Enable local script checks
 enable_local_script_checks = true
+EOF
 
-## Data Persistence
-data_dir = "/etc/consul/data"
-
+log "Generate TLS configuration"
+tee agent-server-tls.hcl > /dev/null << EOF
 ## TLS Encryption (requires cert files to be present on the server nodes)
 verify_incoming        = false
 verify_incoming_rpc    = true
@@ -118,19 +123,14 @@ verify_server_hostname = true
 auto_encrypt {
   allow_tls = true
 }
-EOF
 
-# TLS
-tee agent-server-tls.hcl > /dev/null << EOF
 ca_file   = "/etc/consul/config/consul-agent-ca.pem"
 cert_file = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0.pem"
 key_file  = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0-key.pem"
 EOF
 
 
-## ACL
-
-### Consul ACL configuration
+log "Generate ACL configuration"
 tee agent-server-acl.hcl > /dev/null << EOF
 ## ACL configuration
 acl = {
@@ -142,7 +142,7 @@ acl = {
 }
 EOF
 
-## Server Specific Connfiguration
+log "Generate server specific configuration"
 tee agent-server-specific.hcl > /dev/null << EOF
 ## Server specific configuration for ${DATACENTER}
 server = true
@@ -157,12 +157,7 @@ ui_config {
 }
 EOF
 
-##########################################################
-##########################################################
-
-echo "Copy Configuration on Consul server"
-
-## Copy configuration files
+log "Copy Configuration on Consul server"
 scp -o ${SSH_OPTS} agent-gossip-encryption.hcl                 consul${FQDN_SUFFIX}:/etc/consul/config > /dev/null 2>&1
 scp -o ${SSH_OPTS} consul-agent-ca.pem                         consul${FQDN_SUFFIX}:/etc/consul/config > /dev/null 2>&1
 scp -o ${SSH_OPTS} ${DATACENTER}-server-${DOMAIN}-0.pem        consul${FQDN_SUFFIX}:/etc/consul/config > /dev/null 2>&1
@@ -172,16 +167,20 @@ scp -o ${SSH_OPTS} agent-server-tls.hcl                        consul${FQDN_SUFF
 scp -o ${SSH_OPTS} agent-server-acl.hcl                        consul${FQDN_SUFFIX}:/etc/consul/config > /dev/null 2>&1
 scp -o ${SSH_OPTS} agent-server-specific.hcl                   consul${FQDN_SUFFIX}:/etc/consul/config > /dev/null 2>&1
 
-##########################################################
-##########################################################
+popd
 
-echo "Start Consul"
+##########################################################
+header2 "Start Consul"
+
+log "Start Consul on Consul server"
 
 CONSUL_PID=`ssh -o ${SSH_OPTS} consul${FQDN_SUFFIX} "pidof consul"`
 
 until [ ! -z "${CONSUL_PID}" ] 
 
 do
+  log_warn "Consul not started yet...starting"
+
   ssh -o ${SSH_OPTS} consul${FQDN_SUFFIX} \
     "/usr/local/bin/consul agent \
     -node=consul \
@@ -194,5 +193,77 @@ do
 
 done
 
-##########################################################
-##########################################################
+header2 "Configure ACL"
+
+export CONSUL_HTTP_ADDR="https://consul${FQDN_SUFFIX}"
+export CONSUL_HTTP_SSL=true
+export CONSUL_CACERT="${ASSETS}/consul-agent-ca.pem"
+export CONSUL_TLS_SERVER_NAME="server.${PRIMARY_DATACENTER}.${DOMAIN}"
+export CONSUL_FQDN_ADDR="consul${FQDN_SUFFIX}"
+
+log "ACL Bootstrap"
+
+for i in `seq 1 9`; do
+
+  consul acl bootstrap --format json > ${ASSETS}/acl-token-bootstrap.json 2> /dev/null;
+
+  excode=$?
+
+  if [ ${excode} -eq 0 ]; then
+    break;
+  else
+    if [ $i -eq 9 ]; then
+      echo -e '\033[1m\033[31m[ERROR] \033[0m Failed to bootstrap ACL system, exiting.';
+      exit 1
+    else
+      echo -e '\033[1m\033[33m[WARN] \033[0m ACL system not ready. Retrying...';
+      sleep 5;
+    fi
+  fi
+
+done
+
+export CONSUL_HTTP_TOKEN=`cat ${ASSETS}/acl-token-bootstrap.json | jq -r ".SecretID"`
+
+# echo $CONSUL_HTTP_TOKEN
+
+log "Create ACL policies and tokens"
+
+tee ${ASSETS}/acl-policy-dns.hcl > /dev/null << EOF
+## dns-request-policy.hcl
+node_prefix "" {
+  policy = "read"
+}
+service_prefix "" {
+  policy = "read"
+}
+# only needed if using prepared queries
+query_prefix "" {
+  policy = "read"
+}
+EOF
+
+tee ${ASSETS}/acl-policy-server-node.hcl > /dev/null << EOF
+## consul-server-one-policy.hcl
+node_prefix "consul" {
+  policy = "write"
+}
+EOF
+
+consul acl policy create -name 'acl-policy-dns' -description 'Policy for DNS endpoints' -rules @${ASSETS}/acl-policy-dns.hcl  > /dev/null 2>&1
+
+consul acl policy create -name 'acl-policy-server-node' -description 'Policy for Server nodes' -rules @${ASSETS}/acl-policy-server-node.hcl  > /dev/null 2>&1
+
+consul acl token create -description 'DNS - Default token' -policy-name acl-policy-dns --format json > ${ASSETS}/acl-token-dns.json 2> /dev/null
+
+DNS_TOK=`cat ${ASSETS}/acl-token-dns.json | jq -r ".SecretID"` 
+
+## Create one agent token per server
+log "Setup ACL tokens for Server"
+
+consul acl token create -description "server agent token" -policy-name acl-policy-server-node  --format json > ${ASSETS}/server-acl-token.json 2> /dev/null
+
+SERV_TOK=`cat ${ASSETS}/server-acl-token.json | jq -r ".SecretID"`
+
+consul acl set-agent-token agent ${SERV_TOK}
+consul acl set-agent-token default ${DNS_TOK}
