@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 LOGFILE="/tmp/database.log"
 
@@ -25,14 +25,21 @@ else
     exit 1
 fi
 
-echo "Reloading config to listen on all available interfaces."
 
-killall postgres >> ${LOGFILE} 2>&1 &
+## Check Parameters
+if   [ "$1" == "local" ]; then
+    echo "Starting API on local insteface"
+else
 
-# cp /home/app/pg_hba.conf /etc/postgresql/${PSQL_VERSION}/main/pg_hba.conf
-cp /home/app/pg_hba.conf ${PGDATA}/pg_hba.conf
+    echo "Reloading config to listen on all available interfaces."
 
-# printf "\n listen_addresses = 'localhost' \n" >> /etc/postgresql/${PSQL_VERSION}/main/conf.d/listen_address.conf
-printf "\n listen_addresses = '*' \n" >> ${PGDATA}/postgresql.conf
+    killall postgres >> ${LOGFILE} 2>&1 &
 
-/usr/local/bin/docker-entrypoint.sh postgres >> ${LOGFILE} 2>&1 &
+    # cp /home/app/pg_hba.conf /etc/postgresql/${PSQL_VERSION}/main/pg_hba.conf
+    cp /home/app/pg_hba.conf ${PGDATA}/pg_hba.conf
+
+    # printf "\n listen_addresses = 'localhost' \n" >> /etc/postgresql/${PSQL_VERSION}/main/conf.d/listen_address.conf
+    printf "\n listen_addresses = '*' \n" >> ${PGDATA}/postgresql.conf
+
+    /usr/local/bin/docker-entrypoint.sh postgres >> ${LOGFILE} 2>&1 &
+fi

@@ -5,7 +5,7 @@ DOCKER_IMAGE ?= instruqt-base-consul
 TAG=`date +%Y-%m-%d`
 
 CONSUL_VERSION=latest
-ENVOY_VERSION=1.12-latest
+ENVOY_VERSION=1.21-latest
 BASE_VERSION=latest
 
 build:

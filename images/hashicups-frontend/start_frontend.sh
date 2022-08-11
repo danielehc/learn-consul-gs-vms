@@ -1,4 +1,16 @@
-#!/bin/sh
+#!/bin/bash
+
+## Check Parameters
+if   [ "$1" == "local" ]; then
+
+    echo "Starting service on local insterface"
+
+else
+
+    echo "Starting service on global insterface"
+
+fi
+
 
 # export NEXT_PUBLIC_PUBLIC_API_URL=http://api:8081
 export NEXT_PUBLIC_PUBLIC_API_URL=/

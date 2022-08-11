@@ -23,6 +23,7 @@ COPY --from=application1 app/public-api /bin/public-api
 COPY --from=application2 /app/product-api /bin/product-api
 COPY wait.sh /bin/
 COPY conf.json /home/app/conf.json
+RUN  chown -R 1000:1000 /home/app
 
 RUN chmod +x /bin/product-api && chmod +x /bin/wait.sh
 

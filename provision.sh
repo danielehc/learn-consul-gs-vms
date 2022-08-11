@@ -248,6 +248,7 @@ build() {
     pushd images/$i > /dev/null 2>&1
 
     export DOCKER_IMAGE=`echo $i | sed 's/^base/instruqt-base/g'`
+    export IMAGE_TAG="latest"
     # echo `pwd`
     make latest
   

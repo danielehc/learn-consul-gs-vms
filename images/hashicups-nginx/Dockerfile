@@ -21,7 +21,8 @@ RUN mkdir /var/cache/nginx && chown -R 1000:1000 /var/cache/nginx
 RUN mkdir -p /etc/nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/conf.d/default.conf
-
+COPY def_upstreams.conf /etc/nginx/conf.d/def_upstreams.conf
+	 
 RUN chown -R 1000:1000 /etc/nginx
 RUN chown -R 1000:1000 /usr/share/nginx/html
 
