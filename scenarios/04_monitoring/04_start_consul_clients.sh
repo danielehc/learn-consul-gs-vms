@@ -31,6 +31,24 @@ SERVER_NAME=${CONSUL_FQDN_ADDR}
 # || Begin           |
 # ++-----------------+
 
+# Get latest envoy
+curl -L https://func-e.io/install.sh | bash -s -- -b /home/app
+
+/home/app/func-e use 1.23.0
+
+set -x
+
+scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   db${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
+scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   api${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
+scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   frontend${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
+scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   nginx${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
+
+ssh -o ${SSH_OPTS} app@db${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@api${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@frontend${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@nginx${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
+
+set +x 
 
 header1 "Starting Consul client agents"
 
@@ -42,18 +60,23 @@ datacenter = "${DATACENTER}"
 domain = "${DOMAIN}" 
 
 # Logging
-log_level = "DEBUG"
+log_level = "TRACE"
 
 #client_addr = "127.0.0.1"
 
 retry_join = [ "${SERVER_NAME}${FQDN_SUFFIX}" ]
 
-# Ports
+# Enable service mesh
+connect {
+  enabled = true
+}
 
+# Ports
 ports {
   grpc  = 8502
   http  = 8500
-  https = 443
+  # https = 443
+  https = -1
   dns   = 8600
 }
 
@@ -93,9 +116,9 @@ log "Install Consul on ${SERVICE}"
 ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
       "cp /opt/bin/consul /usr/local/bin/consul && chmod +x /usr/local/bin/consul"
 
-log "Install Envoy on ${SERVICE}"
-ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
-      "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+# log "Install Envoy on ${SERVICE}"
+# ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
+#       "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
 
 log "Create Consul folders"
 ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
@@ -178,7 +201,7 @@ TOK=${AGENT_TOKEN}
 set -x
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 0.0.0.0:21000 -- -l debug > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 127.0.0.1:21000 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 set +x 
 
@@ -195,9 +218,9 @@ log "Install Consul on ${SERVICE}"
 ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
       "cp /opt/bin/consul /usr/local/bin/consul && chmod +x /usr/local/bin/consul"
 
-log "Install Envoy on ${SERVICE}"
-ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
-      "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+# log "Install Envoy on ${SERVICE}"
+# ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
+#       "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
 
 log "Create Consul folders"
 ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
@@ -304,7 +327,7 @@ log "Start sidecar proxy for ${SERVICE}"
 TOK=${AGENT_TOKEN}
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 0.0.0.0:21000 -- -l debug > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 127.0.0.1:21000 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 ##################
 ## Frontend
@@ -318,9 +341,9 @@ log "Install Consul on ${SERVICE}"
 ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
       "cp /opt/bin/consul /usr/local/bin/consul && chmod +x /usr/local/bin/consul"
 
-log "Install Envoy on ${SERVICE}"
-ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
-      "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+# log "Install Envoy on ${SERVICE}"
+# ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
+#       "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
 
 log "Create Consul folders"
 ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
@@ -357,12 +380,11 @@ service {
   connect {
     sidecar_service {
       proxy {
-        upstreams = [
-          {
+        upstreams {
             destination_name = "api"
+            local_bind_address = "127.0.0.1"
             local_bind_port = 8081
-          }
-        ]
+        }
       }
     }
   }
@@ -377,6 +399,38 @@ service {
   }
 }
 EOF
+
+# tee ${ASSETS}/svc-${SERVICE}.hcl > /dev/null << EOF
+# ## svc-${SERVICE}.hcl
+# service {
+#   name = "${SERVICE}"
+#   id = "${SERVICE}-1"
+#   tags = ["v1"]
+#   port = 3000
+  
+#   connect {
+#     sidecar_service {
+#       proxy {
+#         upstreams = [
+#           {
+#             destination_name = "api"
+#             local_bind_port = 8081
+#           }
+#         ]
+#       }
+#     }
+#   }
+
+#   check {
+#     id =  "check-${SERVICE}",
+#     name = "Product ${SERVICE} status check",
+#     service_id = "${SERVICE}-1",
+#     tcp  = "${SERVICE}${FQDN_SUFFIX}:3000",
+#     interval = "1s",
+#     timeout = "1s"
+#   }
+# }
+# EOF
 
 log "Copy configuration files on ${SERVICE}"
 
@@ -409,8 +463,12 @@ done
 log "Start sidecar proxy for ${SERVICE}"
 TOK=${AGENT_TOKEN}
 
+set -x
+
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 0.0.0.0:21000 -- -l debug > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 127.0.0.1:21000 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+
+set +x
 
 ##################
 ## NGINX
@@ -425,9 +483,9 @@ log "Install Consul on ${SERVICE}"
 ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
       "cp /opt/bin/consul /usr/local/bin/consul && chmod +x /usr/local/bin/consul"
 
-log "Install Envoy on ${SERVICE}"
-ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
-      "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+# log "Install Envoy on ${SERVICE}"
+# ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
+#       "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
 
 log "Create Consul folders"
 ssh -o ${SSH_OPTS} app@${SERVICE}${FQDN_SUFFIX} \
@@ -516,7 +574,7 @@ log "Start sidecar proxy for ${SERVICE}"
 TOK=${AGENT_TOKEN}
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 0.0.0.0:21000 -- -l debug > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 127.0.0.1:21000 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 ## Query Service Catalog
 

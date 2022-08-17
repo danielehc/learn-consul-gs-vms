@@ -79,7 +79,7 @@ tee agent-server-secure.hcl > /dev/null << EOF
 data_dir = "/etc/consul/data"
 
 # Logging
-log_level = "DEBUG"
+log_level = "TRACE"
 
 # Enable service mesh
 connect {
@@ -267,3 +267,15 @@ SERV_TOK=`cat ${ASSETS}/server-acl-token.json | jq -r ".SecretID"`
 
 consul acl set-agent-token agent ${SERV_TOK}
 consul acl set-agent-token default ${DNS_TOK}
+
+
+log "Generate proxy-defaults"
+tee ${ASSETS}/config-global-proxy-default.hcl > /dev/null << EOF
+Kind      = "proxy-defaults"
+Name      = "global"
+Config {
+  protocol = "http"
+}
+EOF
+
+consul config write ${ASSETS}/config-global-proxy-default.hcl
