@@ -63,12 +63,20 @@ enable_central_service_config = true
 
 data_dir = "/etc/consul/data"
 
-verify_incoming        = false
-verify_incoming_rpc    = true
-verify_outgoing        = true
-verify_server_hostname = true
-
-ca_file = "/etc/consul/config/consul-agent-ca.pem"
+## TLS Encryption (requires cert files to be present on the server nodes)
+tls {
+  defaults {
+    ca_file   = "/etc/consul/config/consul-agent-ca.pem"
+    verify_outgoing        = true
+    verify_incoming        = true
+  }
+  https {
+    verify_incoming        = false
+  }
+  internal_rpc {
+    verify_server_hostname = true
+  }
+}
 
 auto_encrypt {
   tls = true

@@ -24,7 +24,7 @@ RUN apt-get update
 ## Install `tini` as init process
 RUN DEBIAN_FRONTEND=noninteractive \
 	apt-get --assume-yes install bash bash-completion lsb-release \
-								vim curl wget dnsutils jq iputils-ping \
+								vim curl wget dnsutils jq iputils-ping tree \
 								procps net-tools\
 								openssl dropbear openssh-client gnupg \
 								libcap2-bin \

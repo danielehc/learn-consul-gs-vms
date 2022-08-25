@@ -27,28 +27,37 @@ SERVICE=""
 NODE_NAME=""
 SERVER_NAME=${CONSUL_FQDN_ADDR}
 
+# ENVOY_ADMIN_BIND="127.0.0.1:21000"
+ENVOY_ADMIN_BIND="0.0.0.0:21000"
+
 # ++-----------------+
 # || Begin           |
 # ++-----------------+
 
 # Get latest envoy
-curl -L https://func-e.io/install.sh | bash -s -- -b /home/app
+# curl -L https://func-e.io/install.sh | bash -s -- -b /home/app
 
-/home/app/func-e use 1.23.0
+# /home/app/func-e use 1.23.0
 
-set -x
+# set -x
 
-scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   db${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
-scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   api${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
-scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   frontend${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
-scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   nginx${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
+# scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   db${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
+# scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   api${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
+# scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   frontend${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
+# scp -o ${SSH_OPTS} /home/app/.func-e/versions/1.23.0/bin/envoy   nginx${FQDN_SUFFIX}:/usr/local/bin/envoy > /dev/null 2>&1
 
-ssh -o ${SSH_OPTS} app@db${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
-ssh -o ${SSH_OPTS} app@api${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
-ssh -o ${SSH_OPTS} app@frontend${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
-ssh -o ${SSH_OPTS} app@nginx${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
+# ssh -o ${SSH_OPTS} app@db${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
+# ssh -o ${SSH_OPTS} app@api${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
+# ssh -o ${SSH_OPTS} app@frontend${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
+# ssh -o ${SSH_OPTS} app@nginx${FQDN_SUFFIX} "chmod +x /usr/local/bin/envoy"
 
-set +x 
+# set +x 
+
+ssh -o ${SSH_OPTS} app@db${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@api${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@frontend${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@nginx${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+
 
 header1 "Starting Consul client agents"
 
@@ -86,12 +95,20 @@ enable_central_service_config = true
 
 data_dir = "/etc/consul/data"
 
-verify_incoming        = false
-verify_incoming_rpc    = true
-verify_outgoing        = true
-verify_server_hostname = true
-
-ca_file = "/etc/consul/config/consul-agent-ca.pem"
+## TLS Encryption (requires cert files to be present on the server nodes)
+tls {
+  defaults {
+    ca_file   = "/etc/consul/config/consul-agent-ca.pem"
+    verify_outgoing        = true
+    verify_incoming        = true
+  }
+  https {
+    verify_incoming        = false
+  }
+  internal_rpc {
+    verify_server_hostname = true
+  }
+}
 
 auto_encrypt {
   tls = true
@@ -201,7 +218,7 @@ TOK=${AGENT_TOKEN}
 set -x
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 127.0.0.1:21000 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind ${ENVOY_ADMIN_BIND} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 set +x 
 
@@ -327,7 +344,7 @@ log "Start sidecar proxy for ${SERVICE}"
 TOK=${AGENT_TOKEN}
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 127.0.0.1:21000 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind ${ENVOY_ADMIN_BIND} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 ##################
 ## Frontend
@@ -466,7 +483,7 @@ TOK=${AGENT_TOKEN}
 set -x
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 127.0.0.1:21000 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind ${ENVOY_ADMIN_BIND} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 set +x
 
@@ -574,7 +591,7 @@ log "Start sidecar proxy for ${SERVICE}"
 TOK=${AGENT_TOKEN}
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind 127.0.0.1:21000 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind ${ENVOY_ADMIN_BIND} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 ## Query Service Catalog
 

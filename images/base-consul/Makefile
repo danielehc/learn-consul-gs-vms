@@ -4,7 +4,7 @@ DOCKER_REPOSITORY ?= danielehc
 DOCKER_IMAGE ?= instruqt-base-consul
 TAG=`date +%Y-%m-%d`
 
-CONSUL_VERSION=latest
+CONSUL_VERSION=1.12.4
 ENVOY_VERSION=1.21-latest
 BASE_VERSION=latest
 

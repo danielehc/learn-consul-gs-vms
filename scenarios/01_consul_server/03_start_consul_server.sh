@@ -104,22 +104,40 @@ enable_local_script_checks = true
 ## Data Persistence
 data_dir = "/etc/consul/data"
 
-## TLS Encryption (requires cert files to be present on the server nodes)
-verify_incoming        = false
-verify_incoming_rpc    = true
-verify_outgoing        = true
-verify_server_hostname = true
+# ## TLS Encryption (requires cert files to be present on the server nodes)
+# verify_incoming        = false
+# verify_incoming_rpc    = true
+# verify_outgoing        = true
+# verify_server_hostname = true
 
-auto_encrypt {
-  allow_tls = true
-}
+# auto_encrypt {
+#   allow_tls = true
+# }
 EOF
 
 log "Generate tls configuration"
 tee agent-server-tls.hcl > /dev/null << EOF
-ca_file   = "/etc/consul/config/consul-agent-ca.pem"
-cert_file = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0.pem"
-key_file  = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0-key.pem"
+## TLS Encryption (requires cert files to be present on the server nodes)
+tls {
+  defaults {
+    ca_file   = "/etc/consul/config/consul-agent-ca.pem"
+    cert_file = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0.pem"
+    key_file  = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0-key.pem"
+
+    verify_outgoing        = true
+    verify_incoming        = true
+  }
+  https {
+    verify_incoming        = false
+  }
+  internal_rpc {
+    verify_server_hostname = true
+  }
+}
+
+auto_encrypt {
+  allow_tls = true
+}
 EOF
 
 

@@ -227,6 +227,18 @@ solve_scenario() {
   set +x
 }
 
+distribute_configs() {
+
+  docker cp ./ops/generate_consul_server_config.sh consul:/home/app
+  docker cp ./ops/generate_consul_client_config_sd.sh consul:/home/app
+  docker cp ./ops/generate_consul_client_config_mesh.sh consul:/home/app
+  # docker cp ./ops/generate_consul_client_config_sd.sh db:/home/app
+  # docker cp ./ops/generate_consul_client_config_sd.sh api:/home/app
+  # docker cp ./ops/generate_consul_client_config_sd.sh frontend:/home/app
+  # docker cp ./ops/generate_consul_client_config_sd.sh nginx:/home/app
+
+}
+
 
 login() {
   docker exec -it $1 /bin/bash
@@ -372,6 +384,7 @@ elif [ "$1" == "scenario" ]; then
   clean_env
   spin_scenario_infra $2
   operate_scenario $2
+  distribute_configs
   exit 0
 elif [ "$1" == "login" ]; then
   login $2
