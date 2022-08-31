@@ -222,7 +222,7 @@ service {
       id =  "check-${SERVICE}",
       name = "Product ${SERVICE} status check",
       service_id = "${SERVICE}-1",
-      tcp  = "${SERVICE}${FQDN_SUFFIX}:8081",
+      tcp  = "localhost:8081",
       interval = "1s",
       timeout = "1s"
     },
@@ -238,7 +238,7 @@ service {
       id =  "check-${SERVICE}-2",
       name = "Product ${SERVICE} status check 2",
       service_id = "${SERVICE}-1",
-      tcp  = "${SERVICE}${FQDN_SUFFIX}:9090",
+      tcp  = "localhost:9090",
       interval = "1s",
       timeout = "1s"
     }

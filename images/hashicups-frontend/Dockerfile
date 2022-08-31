@@ -1,8 +1,10 @@
 ARG BASE_VERSION
 ARG APP_VERSION
 
-FROM hashicorpdemoapp/frontend:${APP_VERSION} as application
+# FROM hashicorpdemoapp/frontend:${APP_VERSION} as application
 # FROM im2nguyenhashi/hashicups-frontend:latest as application
+FROM im2nguyenhashi/frontend-localhost:latest as application
+
 FROM danielehc/instruqt-base-consul:${BASE_VERSION} 
 
 RUN apt-get update

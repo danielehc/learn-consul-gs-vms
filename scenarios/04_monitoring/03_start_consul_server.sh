@@ -112,47 +112,47 @@ enable_script_checks = false
 enable_local_script_checks = true
 EOF
 
-# log "Generate TLS configuration"
-# tee agent-server-tls.hcl > /dev/null << EOF
-# ## TLS Encryption (requires cert files to be present on the server nodes)
-# verify_incoming        = false
-# verify_incoming_rpc    = true
-# verify_outgoing        = true
-# verify_server_hostname = true
-
-# auto_encrypt {
-#   allow_tls = true
-# }
-
-# ca_file   = "/etc/consul/config/consul-agent-ca.pem"
-# cert_file = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0.pem"
-# key_file  = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0-key.pem"
-# EOF
-
 log "Generate TLS configuration"
 tee agent-server-tls.hcl > /dev/null << EOF
 ## TLS Encryption (requires cert files to be present on the server nodes)
-tls {
-  defaults {
-    ca_file   = "/etc/consul/config/consul-agent-ca.pem"
-    cert_file = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0.pem"
-    key_file  = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0-key.pem"
-
-    verify_outgoing        = true
-    verify_incoming        = true
-  }
-  https {
-    verify_incoming        = false
-  }
-  internal_rpc {
-    verify_server_hostname = true
-  }
-}
+verify_incoming        = false
+verify_incoming_rpc    = true
+verify_outgoing        = true
+verify_server_hostname = true
 
 auto_encrypt {
   allow_tls = true
 }
+
+ca_file   = "/etc/consul/config/consul-agent-ca.pem"
+cert_file = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0.pem"
+key_file  = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0-key.pem"
 EOF
+
+# log "Generate TLS configuration"
+# tee agent-server-tls.hcl > /dev/null << EOF
+# ## TLS Encryption (requires cert files to be present on the server nodes)
+# tls {
+#   defaults {
+#     ca_file   = "/etc/consul/config/consul-agent-ca.pem"
+#     cert_file = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0.pem"
+#     key_file  = "/etc/consul/config/${DATACENTER}-server-${DOMAIN}-0-key.pem"
+
+#     verify_outgoing        = true
+#     verify_incoming        = true
+#   }
+#   https {
+#     verify_incoming        = false
+#   }
+#   internal_rpc {
+#     verify_server_hostname = true
+#   }
+# }
+
+# auto_encrypt {
+#   allow_tls = true
+# }
+# EOF
 
 
 log "Generate ACL configuration"
@@ -294,13 +294,32 @@ consul acl set-agent-token agent ${SERV_TOK}
 consul acl set-agent-token default ${DNS_TOK}
 
 
-log "Generate proxy-defaults"
-tee ${ASSETS}/config-global-proxy-default.hcl > /dev/null << EOF
-Kind      = "proxy-defaults"
-Name      = "global"
-Config {
-  protocol = "http2"
-}
+# log "Generate proxy-defaults"
+# tee ${ASSETS}/config-global-proxy-default.hcl > /dev/null << EOF
+# Kind      = "proxy-defaults"
+# Name      = "global"
+# Config {
+#   protocol = "http"
+# }
+# EOF
+
+## Errors
+# consul config write ${ASSETS}/config-global-proxy-default.hcl
+
+set -x
+
+log "Generate instentions"
+tee ${ASSETS}/config-intentions.hcl > /dev/null << EOF
+Kind = "service-intentions"
+Name = "*"
+Sources = [
+  {
+    Name   = "*"
+    Action = "allow"
+  }
+]
 EOF
 
-consul config write ${ASSETS}/config-global-proxy-default.hcl
+consul config write ${ASSETS}/config-intentions.hcl
+
+set +x 

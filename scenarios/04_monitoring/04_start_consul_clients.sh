@@ -28,7 +28,7 @@ NODE_NAME=""
 SERVER_NAME=${CONSUL_FQDN_ADDR}
 
 # ENVOY_ADMIN_BIND="127.0.0.1:21000"
-ENVOY_ADMIN_BIND="0.0.0.0:21000"
+ENVOY_ADMIN_BIND="0.0.0.0:19000"
 
 # ++-----------------+
 # || Begin           |
@@ -95,20 +95,28 @@ enable_central_service_config = true
 
 data_dir = "/etc/consul/data"
 
-## TLS Encryption (requires cert files to be present on the server nodes)
-tls {
-  defaults {
-    ca_file   = "/etc/consul/config/consul-agent-ca.pem"
-    verify_outgoing        = true
-    verify_incoming        = true
-  }
-  https {
-    verify_incoming        = false
-  }
-  internal_rpc {
-    verify_server_hostname = true
-  }
-}
+# ## TLS Encryption (requires cert files to be present on the server nodes)
+# tls {
+#   defaults {
+#     ca_file   = "/etc/consul/config/consul-agent-ca.pem"
+#     verify_outgoing        = true
+#     verify_incoming        = true
+#   }
+#   https {
+#     verify_incoming        = false
+#   }
+#   internal_rpc {
+#     verify_server_hostname = true
+#   }
+# }
+
+## TLS encryption OLD
+verify_incoming        = false
+verify_incoming_rpc    = true
+verify_outgoing        = true
+verify_server_hostname = true
+ca_file = "/etc/consul/config/consul-agent-ca.pem"
+
 
 auto_encrypt {
   tls = true
@@ -268,7 +276,7 @@ service {
   name = "${SERVICE}"
   id = "${SERVICE}-1"
   tags = ["v1"]
-  port = 8080
+  port = 8081
   
   connect {
     sidecar_service {
@@ -304,7 +312,7 @@ service {
       id =  "check-${SERVICE}-2",
       name = "Product ${SERVICE} status check 2",
       service_id = "${SERVICE}-1",
-      tcp  = "${SERVICE}${FQDN_SUFFIX}:9090",
+      tcp  = "localhost:9090",
       interval = "1s",
       timeout = "1s"
     }
@@ -543,6 +551,10 @@ service {
           {
             destination_name = "frontend"
             local_bind_port = 3000
+          },
+          {
+            destination_name = "api"
+            local_bind_port = 8081
           }
         ]
       }
@@ -593,5 +605,7 @@ TOK=${AGENT_TOKEN}
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
   "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind ${ENVOY_ADMIN_BIND} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
-## Query Service Catalog
+## Generate intentions
+
+
 

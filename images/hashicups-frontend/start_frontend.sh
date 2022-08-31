@@ -1,15 +1,6 @@
 #!/bin/bash
 
-## Check Parameters
-if   [ "$1" == "local" ]; then
 
-    echo "Starting service on local insterface"
-
-else
-
-    echo "Starting service on global insterface"
-
-fi
 
 
 # export NEXT_PUBLIC_PUBLIC_API_URL=http://api:8081
@@ -32,4 +23,18 @@ echo "Starting HashiCups Frontend"
 
 cd /app
 
-/app/node_modules/.bin/next start > /tmp/frontend.log 2>&1 &
+## Check Parameters
+if   [ "$1" == "local" ]; then
+
+    echo "Starting service on local insterface"
+
+    /app/node_modules/.bin/next start > /tmp/frontend.log 2>&1 &
+
+else
+
+    echo "Starting service on global insterface"
+
+    /app/node_modules/.bin/next start --hostname "127.0.0.1" > /tmp/frontend.log 2>&1 &
+
+fi
+
