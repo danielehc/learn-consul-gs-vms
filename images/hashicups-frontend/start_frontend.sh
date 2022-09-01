@@ -28,13 +28,13 @@ if   [ "$1" == "local" ]; then
 
     echo "Starting service on local insterface"
 
-    /app/node_modules/.bin/next start > /tmp/frontend.log 2>&1 &
+    /app/node_modules/.bin/next start --hostname "127.0.0.1" > /tmp/frontend.log 2>&1 &
 
 else
 
     echo "Starting service on global insterface"
 
-    /app/node_modules/.bin/next start --hostname "127.0.0.1" > /tmp/frontend.log 2>&1 &
+    /app/node_modules/.bin/next start > /tmp/frontend.log 2>&1 &
 
 fi
 

@@ -1,6 +1,10 @@
 #!/bin/bash
 
-if [ ! -z `pidof nginx` ]; then kill -9 `pidof nginx`; fi
+# if [ ! -z `pidof nginx` ]; then kill -9 `pidof nginx`; fi
+
+if [ ! -z `pidof nginx` ]; then killall nginx; fi
+
+
 
 ## Check Parameters
 if   [ "$1" == "local" ]; then

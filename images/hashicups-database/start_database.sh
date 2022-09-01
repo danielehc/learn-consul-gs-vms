@@ -11,7 +11,7 @@ PSQL_VERSION=`ls /usr/lib/postgresql -1 | sort -r | head`
 
 PATH=$PATH:/usr/lib/postgresql/${PSQL_VERSION}/bin
 
-/usr/local/bin/docker-entrypoint.sh postgres > ${LOGFILE} 2>&1 &
+/usr/local/bin/docker-entrypoint.sh postgres >> ${LOGFILE} 2>&1 &
 
 sleep 1
 
@@ -28,12 +28,16 @@ fi
 
 ## Check Parameters
 if   [ "$1" == "local" ]; then
-    echo "Starting API on local insteface"
+    echo "Starting DB on local insteface"
 else
 
     echo "Reloading config to listen on all available interfaces."
 
     killall postgres >> ${LOGFILE} 2>&1 &
+
+    rm ${PGDATA}/postmaster.pid
+
+    sleep 2
 
     # cp /home/app/pg_hba.conf /etc/postgresql/${PSQL_VERSION}/main/pg_hba.conf
     cp /home/app/pg_hba.conf ${PGDATA}/pg_hba.conf

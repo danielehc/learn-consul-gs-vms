@@ -53,10 +53,10 @@ ENVOY_ADMIN_BIND="0.0.0.0:19000"
 
 # set +x 
 
-ssh -o ${SSH_OPTS} app@db${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
-ssh -o ${SSH_OPTS} app@api${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
-ssh -o ${SSH_OPTS} app@frontend${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
-ssh -o ${SSH_OPTS} app@nginx${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@hashicups-db${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@hashicups-api${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@hashicups-frontend${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
+ssh -o ${SSH_OPTS} app@hashicups-nginx${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
 
 
 header1 "Starting Consul client agents"
@@ -132,7 +132,7 @@ EOF
 ##################
 ## Database
 ##################
-SERVICE="db"
+SERVICE="hashicups-db"
 NODE_NAME=${SERVICE}
 
 header2 "Starting agent for ${SERVICE}"
@@ -234,7 +234,7 @@ set +x
 ## API
 ##################
 
-SERVICE="api"
+SERVICE="hashicups-api"
 NODE_NAME=${SERVICE}
 
 header2 "Starting agent for ${SERVICE}"
@@ -357,7 +357,7 @@ ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
 ##################
 ## Frontend
 ##################
-SERVICE="frontend"
+SERVICE="hashicups-frontend"
 NODE_NAME=${SERVICE}
 
 header2 "Starting agent for ${SERVICE}"
@@ -418,7 +418,7 @@ service {
     id =  "check-${SERVICE}",
     name = "Product ${SERVICE} status check",
     service_id = "${SERVICE}-1",
-    tcp  = "${SERVICE}${FQDN_SUFFIX}:3000",
+    tcp  = "localhost:3000",
     interval = "1s",
     timeout = "1s"
   }
@@ -499,7 +499,7 @@ set +x
 ## NGINX
 ##################
 
-SERVICE="nginx"
+SERVICE="hashicups-nginx"
 NODE_NAME=${SERVICE}
 
 header2 "Starting agent for ${SERVICE}"

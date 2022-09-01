@@ -26,7 +26,7 @@ else
     ## Configure Product API
     tee /home/app/conf.json << EOF
 {
-	"db_connection": "host=db port=5432 user=postgres password=password dbname=products sslmode=disable",
+	"db_connection": "host=hashicups-db port=5432 user=postgres password=password dbname=products sslmode=disable",
 	"bind_address": ":9090",
 	"metrics_address": ":9103"
 }

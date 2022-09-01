@@ -265,7 +265,8 @@ consul acl token create -description "server agent token" -policy-name acl-polic
 
 SERV_TOK=`cat ${ASSETS}/server-acl-token.json | jq -r ".SecretID"`
 
-log "Bootstrap token: ${CONSUL_HTTP_TOKEN}"
 
 consul acl set-agent-token agent ${SERV_TOK}
 consul acl set-agent-token default ${DNS_TOK}
+
+log "Bootstrap token: ${CONSUL_HTTP_TOKEN}"

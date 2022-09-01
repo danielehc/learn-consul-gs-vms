@@ -79,9 +79,12 @@ RUN echo root:toor | chpasswd
 ## generate it with `ssh-keygen -t rsa -b 4096`
 COPY ./ssh/id_rsa.pub /etc/dropbear/authorized_keys
 COPY ./ssh/id_rsa.pub /home/app/.ssh/authorized_keys
+COPY ./ssh/id_rsa.pub /root/.ssh/authorized_keys
 
 COPY ./ssh/id_rsa.pub /home/app/.ssh
 COPY ./ssh/id_rsa /home/app/.ssh
+COPY ./ssh/id_rsa.pub /root/.ssh
+COPY ./ssh/id_rsa /root/.ssh
 RUN chown -R 1000:1000 /home/app/.ssh
 
 COPY ./filebrowser.json /.filebrowser.json

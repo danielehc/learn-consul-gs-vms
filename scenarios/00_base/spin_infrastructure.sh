@@ -37,7 +37,7 @@ EXTRA_PARAMS=""
 if [ "${EXPOSE_CONTAINER_PORTS}" == "true" ]; then
     EXTRA_PARAMS="-p 1443:1443 ${EXTRA_PARAMS}"
 fi
-spin_container_param "nginx" "${DK_NET}" "${DOCKER_REPOSITORY}/${IMAGE_NAME_NGINX}:${IMAGE_TAG}" "${EXTRA_PARAMS}"
+spin_container_param "hashicups-nginx" "${DK_NET}" "${DOCKER_REPOSITORY}/${IMAGE_NAME_NGINX}:${IMAGE_TAG}" "${EXTRA_PARAMS}"
 
 
 log "Starting Service node frontend"
@@ -45,7 +45,7 @@ EXTRA_PARAMS=""
 # if [ "${EXPOSE_CONTAINER_PORTS}" == "true" ]; then
 #     EXTRA_PARAMS="-p 1443:1443 ${EXTRA_PARAMS}"
 # fi
-spin_container_param "frontend" "${DK_NET}" "${DOCKER_REPOSITORY}/${IMAGE_NAME_FRONTEND}:${IMAGE_TAG}" "${EXTRA_PARAMS}"
+spin_container_param "hashicups-frontend" "${DK_NET}" "${DOCKER_REPOSITORY}/${IMAGE_NAME_FRONTEND}:${IMAGE_TAG}" "${EXTRA_PARAMS}"
 
 
 log "Starting Service node API"
@@ -53,7 +53,7 @@ EXTRA_PARAMS=""
 # if [ "${EXPOSE_CONTAINER_PORTS}" == "true" ]; then
 #     EXTRA_PARAMS="-p 1443:1443 ${EXTRA_PARAMS}"
 # fi
-spin_container_param "api" "${DK_NET}" "${DOCKER_REPOSITORY}/${IMAGE_NAME_API}:${IMAGE_TAG}" "${EXTRA_PARAMS}"
+spin_container_param "hashicups-api" "${DK_NET}" "${DOCKER_REPOSITORY}/${IMAGE_NAME_API}:${IMAGE_TAG}" "${EXTRA_PARAMS}"
 
 
 log "Starting Service node DB"
@@ -61,8 +61,7 @@ EXTRA_PARAMS=""
 # if [ "${EXPOSE_CONTAINER_PORTS}" == "true" ]; then
 #     EXTRA_PARAMS="-p 1443:1443 ${EXTRA_PARAMS}"
 # fi
-spin_container_param "db" "${DK_NET}" "${DOCKER_REPOSITORY}/${IMAGE_NAME_DATABASE}:${IMAGE_TAG}" "${EXTRA_PARAMS}"
+spin_container_param "hashicups-db" "${DK_NET}" "${DOCKER_REPOSITORY}/${IMAGE_NAME_DATABASE}:${IMAGE_TAG}" "${EXTRA_PARAMS}"
 
 # Resets extra params
 EXTRA_PARAMS=""
-

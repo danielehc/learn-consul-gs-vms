@@ -92,7 +92,7 @@ EOF
 ##################
 ## Database
 ##################
-SERVICE="db"
+SERVICE="hashicups-db"
 NODE_NAME=${SERVICE}
 
 header2 "Starting agent for ${SERVICE}"
@@ -176,7 +176,7 @@ done
 ## API
 ##################
 
-SERVICE="api"
+SERVICE="hashicups-api"
 NODE_NAME=${SERVICE}
 
 header2 "Starting agent for ${SERVICE}"
@@ -222,7 +222,7 @@ service {
       id =  "check-${SERVICE}",
       name = "Product ${SERVICE} status check",
       service_id = "${SERVICE}-1",
-      tcp  = "localhost:8081",
+      tcp  = "${SERVICE}${FQDN_SUFFIX}:8081",
       interval = "1s",
       timeout = "1s"
     },
@@ -238,7 +238,7 @@ service {
       id =  "check-${SERVICE}-2",
       name = "Product ${SERVICE} status check 2",
       service_id = "${SERVICE}-1",
-      tcp  = "localhost:9090",
+      tcp  = "${SERVICE}${FQDN_SUFFIX}:9090",
       interval = "1s",
       timeout = "1s"
     }
@@ -277,7 +277,7 @@ done
 ##################
 ## Frontend
 ##################
-SERVICE="frontend"
+SERVICE="hashicups-frontend"
 NODE_NAME=${SERVICE}
 
 header2 "Starting agent for ${SERVICE}"
@@ -361,7 +361,7 @@ done
 ## NGINX
 ##################
 
-SERVICE="nginx"
+SERVICE="hashicups-nginx"
 NODE_NAME=${SERVICE}
 
 header2 "Starting agent for ${SERVICE}"
