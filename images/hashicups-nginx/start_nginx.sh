@@ -1,15 +1,11 @@
 #!/bin/bash
 
-# if [ ! -z `pidof nginx` ]; then kill -9 `pidof nginx`; fi
-
-if [ ! -z `pidof nginx` ]; then killall nginx; fi
-
-
+killall nginx 2>&1 &
 
 ## Check Parameters
 if   [ "$1" == "local" ]; then
 
-    echo "Starting service on local insterface"
+    echo "Starting service on local interface."
 
     tee /etc/nginx/conf.d/def_upstreams.conf << EOF
 upstream frontend_upstream {
@@ -23,7 +19,7 @@ EOF
 
 else
 
-    echo "Starting service on global insterface"
+    echo "Starting service on global interface."
 
 fi
 

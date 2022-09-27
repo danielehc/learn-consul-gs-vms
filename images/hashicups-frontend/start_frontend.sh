@@ -1,7 +1,9 @@
 #!/bin/bash
 
 
+LOGFILE="/tmp/frontend.log"
 
+killall node >> ${LOGFILE} 2>&1 &
 
 # export NEXT_PUBLIC_PUBLIC_API_URL=http://api:8081
 export NEXT_PUBLIC_PUBLIC_API_URL=/
@@ -26,15 +28,15 @@ cd /app
 ## Check Parameters
 if   [ "$1" == "local" ]; then
 
-    echo "Starting service on local insterface"
+    echo "Starting service on local interface."
 
-    /app/node_modules/.bin/next start --hostname "127.0.0.1" > /tmp/frontend.log 2>&1 &
+    /app/node_modules/.bin/next start --hostname "127.0.0.1" >> ${LOGFILE} 2>&1 &
 
 else
 
-    echo "Starting service on global insterface"
+    echo "Starting service on global interface."
 
-    /app/node_modules/.bin/next start > /tmp/frontend.log 2>&1 &
+    /app/node_modules/.bin/next start >> ${LOGFILE} 2>&1 &
 
 fi
 

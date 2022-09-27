@@ -11,6 +11,9 @@ PSQL_VERSION=`ls /usr/lib/postgresql -1 | sort -r | head`
 
 PATH=$PATH:/usr/lib/postgresql/${PSQL_VERSION}/bin
 
+killall postgres >> ${LOGFILE} 2>&1 &
+rm -rf ${PGDATA}/*
+
 /usr/local/bin/docker-entrypoint.sh postgres >> ${LOGFILE} 2>&1 &
 
 sleep 1
@@ -35,7 +38,7 @@ else
 
     killall postgres >> ${LOGFILE} 2>&1 &
 
-    rm ${PGDATA}/postmaster.pid
+    rm ${PGDATA}/postmaster.pid >> ${LOGFILE} 2>&1 &
 
     sleep 2
 
