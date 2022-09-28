@@ -2,6 +2,8 @@
 
 killall nginx 2>&1 &
 
+sleep 1
+
 ## Check Parameters
 if   [ "$1" == "local" ]; then
 
