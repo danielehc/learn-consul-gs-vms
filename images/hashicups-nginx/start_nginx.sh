@@ -23,6 +23,16 @@ else
 
     echo "Starting service on global interface."
 
+    tee /etc/nginx/conf.d/def_upstreams.conf << EOF
+upstream frontend_upstream {
+    server hashicups-frontend:3000;
+}
+
+upstream api_upstream {
+    server hashicups-api:8081;
+}
+EOF
+
 fi
 
 /usr/sbin/nginx & 
