@@ -143,22 +143,6 @@ consul config write ${ASSETS}/global/intention-db.hcl
 consul config write ${ASSETS}/global/intention-api.hcl
 consul config write ${ASSETS}/global/intention-frontend.hcl
 
-
-# header1 "Generate global configs"
-
-# tee ${ASSETS}/global/envoy-proxy-defaults.hcl > /dev/null << EOF
-# Kind      = "proxy-defaults"
-# Name      = "global"
-# Config {
-#   envoy_prometheus_bind_addr = "0.0.0.0:20200"
-# }
-# EOF
-
-
-# consul config write ${ASSETS}/global/envoy-proxy-defaults.hcl
-
-# ENVOY_EXTRA_OPT="-prometheus-backend-port 20200"
-
 header1 "Install Envoy on Clients"
 
 ssh -o ${SSH_OPTS} app@hashicups-db${FQDN_SUFFIX} "cp /opt/bin/envoy /usr/local/bin/envoy && chmod +x /usr/local/bin/envoy"
@@ -334,7 +318,7 @@ TOK=${AGENT_TOKEN}
 set -x
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 ${ENVOY_EXTRA_OPT} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 # ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
 #   "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -admin-bind ${ENVOY_ADMIN_BIND} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
@@ -463,7 +447,7 @@ log "Start sidecar proxy for ${SERVICE}"
 TOK=${AGENT_TOKEN}
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 ${ENVOY_EXTRA_OPT} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 ##################
 ## Frontend
@@ -602,7 +586,7 @@ TOK=${AGENT_TOKEN}
 set -x
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 ${ENVOY_EXTRA_OPT} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
 
 set +x
 
@@ -714,4 +698,9 @@ log "Start sidecar proxy for ${SERVICE}"
 TOK=${AGENT_TOKEN}
 
 ssh -o ${SSH_OPTS} ${SERVICE}${FQDN_SUFFIX} \
-  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 ${ENVOY_EXTRA_OPT} -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+  "/usr/local/bin/consul connect envoy -token=${TOK} -envoy-binary /usr/local/bin/envoy -sidecar-for ${SERVICE}-1 -- -l trace > /tmp/sidecar-proxy.log 2>&1 &"
+
+## Generate intentions
+
+
+

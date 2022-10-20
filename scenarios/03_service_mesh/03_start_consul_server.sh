@@ -90,7 +90,7 @@ connect {
 addresses {
   grpc = "127.0.0.1"
   // http = "127.0.0.1"
-  http = "0.0.0.0"
+  // http = "0.0.0.0"
   https = "0.0.0.0"
   dns = "127.0.0.1"
 }
@@ -179,30 +179,8 @@ client_addr = "127.0.0.1"
 ## UI configuration (1.9+)
 ui_config {
   enabled = true
-  dashboard_url_templates {
-    service = "http://172.20.0.11:3000/d/hashicups/hashicups?orgId=1&var-service={{Service.Name}}"
-  }
-  metrics_provider = "prometheus"
-  metrics_proxy {
-    base_url = "http://172.20.0.12:9009/prometheus"
-    path_allowlist = ["/api/v1/query_range", "/api/v1/query", "/prometheus/api/v1/query_range", "/prometheus/api/v1/query"]
-  }
 }
 EOF
-
-## TODO How to resolve grafana URL instead of IP?
-
-# 3000/d/hashicups/hashicups?orgId=1&var-service=hashicups-api&var-cluster=All&refresh=30s
-
-log "Generating Consul server telemetry config"
-tee agent-server-telemetry.hcl > /dev/null << EOF
-telemetry {
-  prometheus_retention_time = "60s"
-  disable_hostname = true
-}
-EOF
-scp -o ${SSH_OPTS} agent-server-telemetry.hcl                   consul${FQDN_SUFFIX}:/etc/consul/config > /dev/null 2>&1
-
 
 log "Copy Configuration on Consul server"
 scp -o ${SSH_OPTS} agent-gossip-encryption.hcl                 consul${FQDN_SUFFIX}:/etc/consul/config > /dev/null 2>&1
@@ -286,10 +264,6 @@ service_prefix "" {
 }
 # only needed if using prepared queries
 query_prefix "" {
-  policy = "read"
-}
-# needed for prometheus scraping
-agent_prefix "" {
   policy = "read"
 }
 EOF

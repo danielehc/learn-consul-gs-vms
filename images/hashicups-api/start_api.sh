@@ -6,7 +6,7 @@ if [ ! -z `pidof public-api` ]; then kill -9 `pidof public-api`; fi
 
 ## Check Parameters
 if   [ "$1" == "local" ]; then
-    echo "Starting service on local insterface"
+    echo "Starting service on local interface."
     
     ## Configure Product API
     tee /home/app/conf.json << EOF
@@ -21,7 +21,7 @@ EOF
     export BIND_ADDRESS="localhost:8081"
 
 else
-    echo "Starting service on global insterface"
+    echo "Starting service on global interface."
 
     ## Configure Product API
     tee /home/app/conf.json << EOF

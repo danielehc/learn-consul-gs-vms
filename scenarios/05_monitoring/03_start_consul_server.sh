@@ -89,8 +89,8 @@ connect {
 # Addresses and ports
 addresses {
   grpc = "127.0.0.1"
-  // http = "127.0.0.1"
-  http = "0.0.0.0"
+  http = "127.0.0.1"
+  // http = "0.0.0.0"
   https = "0.0.0.0"
   dns = "127.0.0.1"
 }
@@ -180,11 +180,11 @@ client_addr = "127.0.0.1"
 ui_config {
   enabled = true
   dashboard_url_templates {
-    service = "http://172.20.0.11:3000/d/hashicups/hashicups?orgId=1&var-service={{Service.Name}}"
+    service = "http://172.20.0.9:3000/d/hashicups/hashicups?orgId=1&var-service={{Service.Name}}"
   }
   metrics_provider = "prometheus"
   metrics_proxy {
-    base_url = "http://172.20.0.12:9009/prometheus"
+    base_url = "http://172.20.0.10:9009/prometheus"
     path_allowlist = ["/api/v1/query_range", "/api/v1/query", "/prometheus/api/v1/query_range", "/prometheus/api/v1/query"]
   }
 }

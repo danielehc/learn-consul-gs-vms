@@ -235,6 +235,11 @@ acl {
   default_policy = "deny"
   enable_token_persistence = true
 }
+
+telemetry {
+  prometheus_retention_time = "60s"
+  disable_hostname = true
+}
 EOF
 
 ##################

@@ -70,20 +70,20 @@ EXTRA_PARAMS=""
 
 
 ## Monitoring
-TEMPO_IMAGE="grafana/tempo:latest"
-TEMPO_PARAMS="--volume=${ASS_DIR}/assets/tempo/tempo.yaml:/etc/tempo.yaml"
-TEMPO_COMMAND="-config.file=/etc/tempo.yaml"
+# TEMPO_IMAGE="grafana/tempo:latest"
+# TEMPO_PARAMS="--volume=${ASS_DIR}/assets/tempo/tempo.yaml:/etc/tempo.yaml"
+# TEMPO_COMMAND="-config.file=/etc/tempo.yaml"
 
 LOKI_IMAGE="grafana/loki:main"
-LOKI_PARAMS="-e JAEGER_AGENT_HOST=tempo \
-             -e JAEGER_ENDPOINT=http://tempo:14268/api/traces \
-             -e JAEGER_SAMPLER_TYPE=const \
-             -e JAEGER_SAMPLER_PARAM=1"
+LOKI_PARAMS="" #"-e JAEGER_AGENT_HOST=tempo \
+             # -e JAEGER_ENDPOINT=http://tempo:14268/api/traces \
+             # -e JAEGER_SAMPLER_TYPE=const \
+             # -e JAEGER_SAMPLER_PARAM=1"
 LOKI_COMMAND="-config.file=/etc/loki/local-config.yaml"
 
-PROMETHEUS_IMAGE="prom/prometheus:latest"
-PROMETHEUS_PARAMS="--volume=${ASS_DIR}/assets/prometheus:/etc/prometheus"
-PROMETHEUS_COMMAND="" #"/bin/prometheus --config.file=/etc/prometheus.yml"
+# PROMETHEUS_IMAGE="prom/prometheus:latest"
+# PROMETHEUS_PARAMS="--volume=${ASS_DIR}/assets/prometheus:/etc/prometheus"
+# PROMETHEUS_COMMAND="" #"/bin/prometheus --config.file=/etc/prometheus.yml"
 
 GRAFANA_IMAGE="grafana/grafana:latest"
 GRAFANA_PARAMS="--volume=${ASS_DIR}/assets/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources \
@@ -98,26 +98,25 @@ MIMIR_IMAGE="grafana/mimir:latest"
 MIMIR_PARAMS="--volume=${ASS_DIR}/assets/mimir/mimir.yaml:/etc/mimir/mimir.yaml"
 MIMIR_COMMAND="--config.file=/etc/mimir/mimir.yaml"
 
-JAEGER_IMAGE="jaegertracing/all-in-one:latest"
-JAEGER_PARAMS=""
-JAEGER_COMMAND=""
+# JAEGER_IMAGE="jaegertracing/all-in-one:latest"
+# JAEGER_PARAMS=""
+# JAEGER_COMMAND=""
 
-
-log "Starting Monitoring node Tempo"
+# log "Starting Monitoring node Tempo"
 
 # set -x
 
-spin_container_param_nouser "tempo" "${DK_NET}" "${TEMPO_IMAGE}" "${TEMPO_PARAMS}" "${TEMPO_COMMAND}"
+# spin_container_param_nouser "tempo" "${DK_NET}" "${TEMPO_IMAGE}" "${TEMPO_PARAMS}" "${TEMPO_COMMAND}"
 
 spin_container_param_nouser "loki" "${DK_NET}" "${LOKI_IMAGE}" "${LOKI_PARAMS}" "${LOKI_COMMAND}"
 
-spin_container_param_nouser "prometheus" "${DK_NET}" "${PROMETHEUS_IMAGE}" "${PROMETHEUS_PARAMS}" "${PROMETHEUS_COMMAND}"
+# spin_container_param_nouser "prometheus" "${DK_NET}" "${PROMETHEUS_IMAGE}" "${PROMETHEUS_PARAMS}" "${PROMETHEUS_COMMAND}"
 
 spin_container_param_nouser "grafana" "${DK_NET}" "${GRAFANA_IMAGE}" "${GRAFANA_PARAMS}" "${GRAFANA_COMMAND}"
 
 spin_container_param_nouser "mimir" "${DK_NET}" "${MIMIR_IMAGE}" "${MIMIR_PARAMS}" "${MIMIR_COMMAND}"
 
-spin_container_param_nouser "jaeger" "${DK_NET}" "${JAEGER_IMAGE}" "${JAEGER_PARAMS}" "${JAEGER_COMMAND}"
+# spin_container_param_nouser "jaeger" "${DK_NET}" "${JAEGER_IMAGE}" "${JAEGER_PARAMS}" "${JAEGER_COMMAND}"
 
 # set +x
 

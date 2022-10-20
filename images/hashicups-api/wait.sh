@@ -4,7 +4,7 @@
 
 set -e
   
-until psql postgres://postgres:password@db:5432/products?sslmode=disable  -c '\q'; do
+until psql postgres://postgres:password@hashicups-db:5432/products?sslmode=disable  -c '\q'; do
   >&2 echo "Postgres is unavailable - sleeping"
   sleep 1
 done

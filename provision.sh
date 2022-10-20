@@ -55,6 +55,7 @@ spin_container_param() {
   CONTAINER_NET=$2
   IMAGE=$3
   EXTRA_PARAMS=$4
+  COMMAND=$5
 
   ## Containers have a user named `app` with UID=1000 and GID=1000 
   # USER="$(id -u):$(id -g)"
@@ -69,7 +70,7 @@ spin_container_param() {
   --name=${CONTAINER_NAME} \
   --hostname=${CONTAINER_NAME} \
   --label tag=${DK_TAG} ${EXTRA_PARAMS}\
-  ${IMAGE} > /dev/null 2>&1
+  ${IMAGE} ${COMMAND} > /dev/null 2>&1
 
   if [ $? != 0 ]; then
     log_err "Failed startup for container $1. Exiting."
@@ -77,6 +78,40 @@ spin_container_param() {
   fi 
 
   # set +x
+}
+
+spin_container_param_nouser() {
+
+  CONTAINER_NAME=$1
+  CONTAINER_NET=$2
+  IMAGE=$3
+  EXTRA_PARAMS=$4
+  COMMAND=$5
+
+  log "Starting container $1"
+  # set -x
+  docker run \
+  -d \
+  --net ${CONTAINER_NET} \
+  --name=${CONTAINER_NAME} \
+  --hostname=${CONTAINER_NAME} \
+  --label tag=${DK_TAG} ${EXTRA_PARAMS}\
+  ${IMAGE} ${COMMAND} > /dev/null 2>&1
+
+  if [ $? != 0 ]; then
+    log_err "Failed startup for container $1. Exiting."
+    exit 1
+  fi 
+
+  # set +x
+}
+
+show_nodes() {
+
+  for i in `docker ps -aq --filter label=tag=instruqt`; do 
+    docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}} - {{.Name}}' $i; 
+  done
+
 }
 
 operate_modular() { 
@@ -389,6 +424,9 @@ elif [ "$1" == "scenario" ]; then
 elif [ "$1" == "login" ]; then
   login $2
   exit 0
+elif [ "$1" == "nodes" ]; then
+  show_nodes
+  exit 0
 elif [ "$1" == "build" ]; then
   export CONSUL_VERSION
   export DOCKER_REPOSITORY
@@ -396,6 +434,12 @@ elif [ "$1" == "build" ]; then
   exit 0
 elif [ "$1" == "solve" ]; then
   solve_scenario $2
+  exit 0
+elif [ "$1" == "spin" ]; then
+  clean_env
+  spin_scenario_infra $2
+  # operate_scenario $2
+  # distribute_configs
   exit 0
 # elif [ "$1" == "operate" ]; then
 #   operate_modular
