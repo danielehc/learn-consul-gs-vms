@@ -9,6 +9,8 @@ deleteDatasources:
     orgId: 1
   - name: Tempo
     orgId: 1
+  - name: Mimir
+    orgId: 1
 
 # list of datasources to insert/update depending
 # what's available in the database
@@ -29,15 +31,15 @@ datasources:
         matcherRegex: (?:traceID|trace_id)=(\w+)
         name: TraceID
         url: $${__value.raw}
-- name: Prometheus
-  type: prometheus
-  access: proxy
-  orgId: 1
-  url: http://prometheus:9090
-  basicAuth: false
-  isDefault: false
-  version: 1
-  editable: false
+# - name: Prometheus
+#   type: prometheus
+#   access: proxy
+#   orgId: 1
+#   url: http://prometheus:9090
+#   basicAuth: false
+#   isDefault: false
+#   version: 1
+#   editable: false
 - name: Mimir
   type: prometheus
   access: proxy
@@ -47,14 +49,14 @@ datasources:
   isDefault: false
   version: 1
   editable: false
-- name: Tempo
-  type: tempo
-  access: proxy
-  orgId: 1
-  url: http://tempo:3100
-  basicAuth: false
-  isDefault: false
-  version: 1
-  editable: false
-  apiVersion: 1
-  uid: tempo
+# - name: Tempo
+#   type: tempo
+#   access: proxy
+#   orgId: 1
+#   url: http://tempo:3100
+#   basicAuth: false
+#   isDefault: false
+#   version: 1
+#   editable: false
+#   apiVersion: 1
+#   uid: tempo

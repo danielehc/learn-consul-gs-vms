@@ -259,7 +259,7 @@ ssh -o ${SSH_OPTS} app@consul${FQDN_SUFFIX} \
 sleep 1
 
 
-ssh -o ${SSH_OPTS} app@hashicups-db${FQDN_SUFFIX} \
+ssh -o ${SSH_OPTS} aproxypp@hashicups-db${FQDN_SUFFIX} \
     "bash -c '/home/app/grafana-agent -config.file /home/app/grafana-agent.yaml > /tmp/grafana-agent.log 2>&1'" &
 
 sleep 1
@@ -282,19 +282,4 @@ sleep 1
 set +x
 
 # exit 0
-
-## Configure Consul server for prometheus
-# log "Generating Consul server telemetry config"
-
-# tee ${ASSETS}/agent-server-telemetry.hcl > /dev/null << EOF
-# telemetry {
-#   prometheus_retention_time = "60s"
-#   disable_hostname = true
-# }
-# EOF
-
-# scp -o ${SSH_OPTS} agent-server-telemetry.hcl                   consul${FQDN_SUFFIX}:/etc/consul/config > /dev/null 2>&1
-
-# ssh -o ${SSH_OPTS} consul${FQDN_SUFFIX} \
-#     "/usr/local/bin/consul reload >> /tmp/consul-server.log 2>&1" &
 
